@@ -1,0 +1,23 @@
+# Environment variables / secrets
+.env
+.env.*
+*.env
+
+# API keys and credentials
+*api_key*
+*api-key*
+*apikey*
+*secret*
+*credentials*
+*.pem
+*.key
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*

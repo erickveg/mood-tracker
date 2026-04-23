@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6a48a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Mood" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%23f6a48a'/><text x='50%25' y='54%25' text-anchor='middle' dominant-baseline='middle' font-size='120'>%F0%9F%98%8A</text></svg>" />
+  <title>Mood Tracker</title>
+  <style>
+    :root {
+      --bg-1: #fff7f1;
+      --bg-2: #ffe9dd;
+      --bg-3: #f7e1ee;
+      --card: #ffffff;
+      --ink: #3a2e2a;
+      --ink-soft: #6b5b54;
+      --accent: #f6a48a;
+      --accent-deep: #e88564;
+      --accent-soft: #ffd7c4;
+      --lavender: #c8b6e2;
+      --mint: #b8e0d2;
+      --shadow: 0 10px 30px rgba(232, 133, 100, 0.18);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", "Nunito", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 15% 10%, var(--bg-2) 0%, transparent 55%),
+        radial-gradient(circle at 85% 90%, var(--bg-3) 0%, transparent 55%),
+        var(--bg-1);
+      background-attachment: fixed;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      padding: 24px 20px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    header {
+      text-align: center;
+      padding-top: 14px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--accent-deep), var(--lavender));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      color: var(--ink-soft);
+      font-size: 15px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .preview {
+      position: relative;
+      aspect-ratio: 4 / 5;
+      border-radius: 18px;
+      overflow: hidden;
+      background:
+        repeating-linear-gradient(45deg, rgba(246, 164, 138, 0.08) 0 12px, transparent 12px 24px),
+        var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink-soft);
+      font-size: 15px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .preview img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .preview .placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      opacity: 0.85;
+    }
+
+    .preview .placeholder .ico {
+      font-size: 56px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      font: inherit;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.08s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      grid-column: 1 / -1;
+      color: white;
+      background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+      box-shadow: 0 8px 18px rgba(232, 133, 100, 0.35);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-secondary {
+      background: var(--accent-soft);
+      color: var(--ink);
+    }
+
+    .btn-ghost {
+      background: #f3edf8;
+      color: var(--ink);
+    }
+
+    .hidden-input { display: none; }
+
+    .result {
+      text-align: center;
+      padding: 28px 22px;
+      display: none;
+    }
+
+    .result.show { display: block; animation: pop 0.35s ease; }
+
+    @keyframes pop {
+      from { opacity: 0; transform: translateY(8px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .result .emoji {
+      font-size: 88px;
+      line-height: 1;
+      filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.08));
+    }
+
+    .result .label {
+      margin-top: 10px;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--accent-deep);
+    }
+
+    .result .desc {
+      margin-top: 10px;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--ink-soft);
+    }
+
+    .status {
+      text-align: center;
+      font-size: 14px;
+      color: var(--ink-soft);
+      min-height: 18px;
+    }
+
+    .status.error { color: #c0392b; }
+
+    .loader {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 3px solid var(--accent-soft);
+      border-top-color: var(--accent-deep);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--ink-soft);
+      opacity: 0.75;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>¿Cómo te sientes hoy?</h1>
+      <p>Toma una foto y descubre tu estado de ánimo ✨</p>
+    </header>
+
+    <section class="card">
+      <div class="preview" id="preview">
+        <div class="placeholder">
+          <div class="ico">📸</div>
+          <div>Aún no hay foto. ¡Empecemos!</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" id="cameraBtn">📷 Cámara</button>
+        <button class="btn btn-ghost" id="galleryBtn">🖼️ Galería</button>
+        <button class="btn btn-primary" id="analyzeBtn" disabled>Analizar mi mood</button>
+      </div>
+
+      <input class="hidden-input" type="file" id="cameraInput" accept="image/*" capture="user" />
+      <input class="hidden-input" type="file" id="galleryInput" accept="image/*" />
+    </section>
+
+    <div class="status" id="status"></div>
+
+    <section class="card result" id="result">
+      <div class="emoji" id="resultEmoji">🙂</div>
+      <div class="label" id="resultLabel">—</div>
+      <div class="desc" id="resultDesc">—</div>
+    </section>
+
+    <footer>Hecho con cariño · Mood Tracker</footer>
+  </main>
+
+  <script>
+    const ANALYZE_ENDPOINT = "/api/analyze";
+
+    const els = {
+      preview: document.getElementById("preview"),
+      cameraBtn: document.getElementById("cameraBtn"),
+      galleryBtn: document.getElementById("galleryBtn"),
+      analyzeBtn: document.getElementById("analyzeBtn"),
+      cameraInput: document.getElementById("cameraInput"),
+      galleryInput: document.getElementById("galleryInput"),
+      status: document.getElementById("status"),
+      result: document.getElementById("result"),
+      resultEmoji: document.getElementById("resultEmoji"),
+      resultLabel: document.getElementById("resultLabel"),
+      resultDesc: document.getElementById("resultDesc"),
+    };
+
+    let currentImage = null;
+
+    els.cameraBtn.addEventListener("click", () => els.cameraInput.click());
+    els.galleryBtn.addEventListener("click", () => els.galleryInput.click());
+    els.cameraInput.addEventListener("change", (e) => handleFile(e.target.files[0]));
+    els.galleryInput.addEventListener("change", (e) => handleFile(e.target.files[0]));
+    els.analyzeBtn.addEventListener("click", analyzeMood);
+
+    async function handleFile(file) {
+      if (!file) return;
+      setStatus("");
+      hideResult();
+      try {
+        const compressed = await compressImage(file, 1024, 0.85);
+        currentImage = compressed;
+        renderPreview(compressed.dataUrl);
+        els.analyzeBtn.disabled = false;
+      } catch (err) {
+        console.error(err);
+        setStatus("No pudimos procesar la imagen. Intenta con otra.", true);
+      }
+    }
+
+    function renderPreview(dataUrl) {
+      els.preview.innerHTML = "";
+      const img = document.createElement("img");
+      img.src = dataUrl;
+      img.alt = "Vista previa";
+      els.preview.appendChild(img);
+    }
+
+    function compressImage(file, maxDim, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("read-error"));
+        reader.onload = () => {
+          const img = new Image();
+          img.onerror = () => reject(new Error("image-error"));
+          img.onload = () => {
+            const ratio = Math.min(1, maxDim / Math.max(img.width, img.height));
+            const w = Math.round(img.width * ratio);
+            const h = Math.round(img.height * ratio);
+            const canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL("image/jpeg", quality);
+            const base64 = dataUrl.split(",")[1];
+            resolve({ dataUrl, base64, mediaType: "image/jpeg" });
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function setStatus(msg, isError = false) {
+      els.status.textContent = msg || "";
+      els.status.classList.toggle("error", !!isError);
+    }
+
+    function setLoading(isLoading) {
+      if (isLoading) {
+        els.status.innerHTML = '<span class="loader"><span class="spinner"></span>Analizando tu estado de ánimo…</span>';
+        els.status.classList.remove("error");
+        els.analyzeBtn.disabled = true;
+      } else {
+        els.analyzeBtn.disabled = !currentImage;
+      }
+    }
+
+    function hideResult() {
+      els.result.classList.remove("show");
+    }
+
+    function showResult({ emoji, label, description }) {
+      els.resultEmoji.textContent = emoji || "🙂";
+      els.resultLabel.textContent = label || "Sin etiqueta";
+      els.resultDesc.textContent = description || "";
+      els.result.classList.add("show");
+    }
+
+    async function analyzeMood() {
+      if (!currentImage) return;
+
+      hideResult();
+      setLoading(true);
+
+      try {
+        const response = await fetch(ANALYZE_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            imageBase64: currentImage.base64,
+            mediaType: currentImage.mediaType,
+          }),
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`API ${response.status}: ${errText}`);
+        }
+
+        const mood = await response.json();
+        setStatus("");
+        showResult(mood);
+      } catch (err) {
+        console.error(err);
+        setStatus("Ups, algo salió mal al analizar la imagen. Intenta de nuevo.", true);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if ("serviceWorker" in navigator) {
+      // No service worker yet — manifest enables Add to Home Screen on iOS/Android.
+    }
+  </script>
+</body>
+</html>
